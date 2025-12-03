@@ -69,8 +69,8 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           await authApi.register(data);
-          // After register, login with same credentials
-          await get().login(data.email, data.password);
+          // Don't auto login - user needs to verify email first
+          set({ isLoading: false });
         } catch (error) {
           set({ isLoading: false });
           throw error;
