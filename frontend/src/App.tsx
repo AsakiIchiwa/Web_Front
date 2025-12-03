@@ -10,9 +10,8 @@ import DashboardLayout from './components/DashboardLayout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import RegisterSuccessPage from './pages/RegisterSuccessPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
-import PendingApprovalPage from './pages/PendingApprovalPage';
+import WaitingPage from './pages/WaitingPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import SuppliersPage from './pages/SuppliersPage';
@@ -72,9 +71,8 @@ export default function App() {
       {/* Auth Routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route path="/register/success" element={<RegisterSuccessPage />} />
+      <Route path="/waiting" element={<WaitingPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
-      <Route path="/pending-approval" element={<PendingApprovalPage />} />
       
       {/* Supplier Routes */}
       <Route path="/supplier" element={

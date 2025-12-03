@@ -28,10 +28,8 @@ export default function RegisterPage() {
     e.preventDefault();
     try {
       await register(formData);
-      toast.success('Đăng ký thành công!');
-      
-      if (formData.role === 'supplier') navigate('/supplier/dashboard');
-      else navigate('/shop/dashboard');
+      toast.success('Đăng ký thành công! Vui lòng kiểm tra email để xác thực.');
+      navigate('/waiting', { state: { email: formData.email } });
     } catch (error: any) {
       toast.error(error.response?.data?.detail || 'Đăng ký thất bại');
     }
