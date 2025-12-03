@@ -7,6 +7,8 @@ export type ContractStatus = 'draft' | 'active' | 'expired' | 'terminated';
 export interface User {
   id: number;
   email: string;
+  email_verified?: boolean;  // ← Thêm
+  is_approved?: boolean; 
   full_name: string;
   role: UserRole;
   created_at: string;
