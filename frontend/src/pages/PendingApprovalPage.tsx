@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { Clock, CheckCircle, Mail, LogIn } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function PendingApprovalPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const email = searchParams.get('email') || '';
-  const [status, setStatus] = useState<{
-    email_verified: boolean;
-    is_approved: boolean;
-  } | null>(null);
   const [checking, setChecking] = useState(false);
+  const [approved, setApproved] = useState(false);
+  const [countdown, setCountdown] = useState(5);
 
   const checkStatus = async () => {
     if (!email) return;
@@ -18,7 +18,12 @@ export default function PendingApprovalPage() {
     setChecking(true);
     try {
       const response = await api.get(`/auth/check-status?email=${encodeURIComponent(email)}`);
-      setStatus(response.data);
+      
+      // If approved, start countdown to redirect
+      if (response.data.is_approved && !approved) {
+        setApproved(true);
+        toast.success('Tài khoản đã được phê duyệt!');
+      }
     } catch (error) {
       console.error('Error checking status:', error);
     } finally {
@@ -26,16 +31,29 @@ export default function PendingApprovalPage() {
     }
   };
 
+  // Check status every 5 seconds
   useEffect(() => {
-    checkStatus();
+    if (!email || approved) return;
     
-    // Auto check every 30 seconds
-    const interval = setInterval(checkStatus, 30000);
+    checkStatus();
+    const interval = setInterval(checkStatus, 5000);
     return () => clearInterval(interval);
-  }, [email]);
+  }, [email, approved]);
 
-  // If approved, show different UI
-  if (status?.is_approved) {
+  // Countdown and redirect when approved
+  useEffect(() => {
+    if (!approved) return;
+    
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    } else {
+      navigate('/login');
+    }
+  }, [approved, countdown, navigate]);
+
+  // If approved, show success UI with countdown
+  if (approved) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-400 via-emerald-500 to-teal-500 px-4">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8 text-center">
@@ -48,6 +66,13 @@ export default function PendingApprovalPage() {
           <p className="text-gray-600 mb-6">
             Chúc mừng! Tài khoản của bạn đã được Admin phê duyệt. Bạn có thể đăng nhập ngay bây giờ.
           </p>
+          
+          {/* Countdown */}
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-green-700">
+              Tự động chuyển đến trang đăng nhập sau <strong className="text-lg">{countdown}</strong> giây...
+            </p>
+          </div>
           
           <Link 
             to="/login" 
@@ -75,6 +100,16 @@ export default function PendingApprovalPage() {
         <p className="text-gray-600 mb-6">
           Email của bạn đã được xác thực thành công! Tài khoản đang chờ Admin xem xét và phê duyệt.
         </p>
+        
+        {/* Auto-checking indicator */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-center gap-2">
+            <div className={`w-3 h-3 rounded-full ${checking ? 'bg-amber-500 animate-pulse' : 'bg-green-500'}`}></div>
+            <p className="text-sm text-amber-700">
+              Đang chờ Admin phê duyệt... (tự động kiểm tra)
+            </p>
+          </div>
+        </div>
         
         {/* Progress Steps */}
         <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-5 mb-6 text-left">
@@ -109,7 +144,6 @@ export default function PendingApprovalPage() {
               <div className="w-8 h-8 bg-gray-300 text-white rounded-full flex items-center justify-center text-sm font-bold">4</div>
               <div>
                 <p className="font-medium text-gray-400">Đăng nhập & sử dụng</p>
-                <p className="text-xs text-gray-400">Chờ bước 3 hoàn thành</p>
               </div>
             </div>
           </div>
@@ -148,7 +182,7 @@ export default function PendingApprovalPage() {
         
         {/* Auto refresh note */}
         <p className="text-xs text-gray-400 mt-4">
-          Trang này tự động kiểm tra mỗi 30 giây
+          Trang này tự động kiểm tra mỗi 5 giây
         </p>
 
       </div>
