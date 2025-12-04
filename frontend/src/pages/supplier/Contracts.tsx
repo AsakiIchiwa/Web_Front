@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { contractsApi } from '../../api';
 import { Contract } from '../../types';
-import { FileText } from 'lucide-react';
+import { FileText, Eye, X, Building2, Store, Package, Calendar, DollarSign, Phone, Mail, MapPin } from 'lucide-react';
 
 export default function SupplierContracts() {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   
   useEffect(() => { fetchContracts(); }, []);
   
@@ -46,6 +47,7 @@ export default function SupplierContracts() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Số lượng</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thời hạn</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -67,6 +69,15 @@ export default function SupplierContracts() {
                        contract.status === 'draft' ? 'Nháp' : 'Hết hạn'}
                     </span>
                   </td>
+                  <td className="px-6 py-4">
+                    <button 
+                      onClick={() => setSelectedContract(contract)}
+                      className="btn btn-sm btn-secondary flex items-center gap-1"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Chi tiết
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -79,6 +90,140 @@ export default function SupplierContracts() {
           )}
         </div>
       </div>
+
+      {/* Contract Detail Modal */}
+      {selectedContract && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Chi tiết hợp đồng #{selectedContract.id}</h2>
+              <button 
+                onClick={() => setSelectedContract(null)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Status */}
+              <div className="flex items-center justify-between">
+                <span className={`px-4 py-2 rounded-full text-sm font-medium ${
+                  selectedContract.status === 'active' ? 'bg-green-100 text-green-700' : 
+                  selectedContract.status === 'draft' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
+                }`}>
+                  {selectedContract.status === 'active' ? '✅ Đang hoạt động' : 
+                   selectedContract.status === 'draft' ? '📝 Nháp' : '⏹️ Hết hạn'}
+                </span>
+                <p className="text-sm text-gray-500">
+                  Tạo ngày: {formatDate(selectedContract.created_at || '')}
+                </p>
+              </div>
+
+              {/* Product Info */}
+              <div className="bg-gray-50 rounded-xl p-4">
+                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Package className="w-5 h-5 text-primary-600" />
+                  Thông tin sản phẩm
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Tên sản phẩm</p>
+                    <p className="font-medium">{selectedContract.product?.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Danh mục</p>
+                    <p className="font-medium">{selectedContract.product?.category}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Số lượng</p>
+                    <p className="font-medium">{selectedContract.quantity} {selectedContract.product?.unit}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Giá thỏa thuận</p>
+                    <p className="font-bold text-primary-600 text-lg">{formatPrice(selectedContract.agreed_price)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Shop Info */}
+              <div className="bg-blue-50 rounded-xl p-4">
+                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Store className="w-5 h-5 text-blue-600" />
+                  Thông tin cửa hàng mua
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Tên cửa hàng</p>
+                    <p className="font-medium">{selectedContract.shop?.shop_name || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Người liên hệ</p>
+                    <p className="font-medium">{selectedContract.shop?.user?.full_name || 'N/A'}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-gray-400" />
+                    <span>{selectedContract.shop?.user?.email || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-gray-400" />
+                    <span>{selectedContract.shop?.phone || selectedContract.shop?.user?.phone || 'N/A'}</span>
+                  </div>
+                  {selectedContract.shop?.address && (
+                    <div className="md:col-span-2 flex items-start gap-2">
+                      <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
+                      <span>{selectedContract.shop.address}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Contract Period */}
+              <div className="bg-purple-50 rounded-xl p-4">
+                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-purple-600" />
+                  Thời hạn hợp đồng
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Ngày bắt đầu</p>
+                    <p className="font-medium">{formatDate(selectedContract.start_date || '')}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Ngày kết thúc</p>
+                    <p className="font-medium">{formatDate(selectedContract.end_date || '')}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Total Value */}
+              <div className="bg-green-50 rounded-xl p-4">
+                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-green-600" />
+                  Giá trị hợp đồng
+                </h3>
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-green-600">
+                    {formatPrice(selectedContract.agreed_price * selectedContract.quantity)}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {selectedContract.quantity} x {formatPrice(selectedContract.agreed_price)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Terms */}
+              {selectedContract.terms && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Điều khoản</h3>
+                  <p className="text-gray-600 bg-gray-50 rounded-lg p-4">{selectedContract.terms}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
