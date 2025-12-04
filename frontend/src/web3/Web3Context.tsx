@@ -1,12 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { 
-  BrowserProvider, 
-  Contract, 
-  formatEther, 
-  parseEther,
-  Signer
-} from 'ethers';
-import * as ethers from 'ethers';
+import { ethers } from 'ethers';
 
 // Extend Window interface for ethereum
 declare global {
@@ -175,9 +168,9 @@ interface Web3ContextType {
   networkName: string;
   
   // Contracts
-  escrowContract: Contract | null;
-  reputationContract: Contract | null;
-  nftContract: Contract | null;
+  escrowContract: ethers.Contract | null;
+  reputationContract: ethers.Contract | null;
+  nftContract: ethers.Contract | null;
   
   // Actions
   connect: () => Promise<void>;
@@ -224,15 +217,15 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
   const [account, setAccount] = useState<string | null>(null);
   const [chainId, setChainId] = useState<number | null>(null);
   const [balance, setBalance] = useState('0');
-  const [provider, setProvider] = useState<BrowserProvider | null>(null);
-  const [signer, setSigner] = useState<Signer | null>(null);
-  const [escrowContract, setEscrowContract] = useState<Contract | null>(null);
-  const [reputationContract, setReputationContract] = useState<Contract | null>(null);
-  const [nftContract, setNftContract] = useState<Contract | null>(null);
+  const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
+  const [signer, setSigner] = useState<ethers.Signer | null>(null);
+  const [escrowContract, setEscrowContract] = useState<ethers.Contract | null>(null);
+  const [reputationContract, setReputationContract] = useState<ethers.Contract | null>(null);
+  const [nftContract, setNftContract] = useState<ethers.Contract | null>(null);
   const networkName = chainId ? (NETWORKS[chainId as keyof typeof NETWORKS]?.chainName || `Chain ${chainId}`) : 'Not Connected';
 
   // Initialize contracts
-  const initContracts = useCallback(async (signer: Signer, chainId: number) => {
+  const initContracts = useCallback(async (signer: ethers.Signer, chainId: number) => {
     const addresses = CONTRACT_ADDRESSES[chainId as keyof typeof CONTRACT_ADDRESSES];
     if (!addresses) {
       console.warn(`No contract addresses for chain ${chainId}`);
@@ -240,13 +233,13 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (addresses.escrow !== '0x0000000000000000000000000000000000000000') {
-      setEscrowContract(new Contract(addresses.escrow, ESCROW_ABI, signer));
+      setEscrowContract(new ethers.Contract(addresses.escrow, ESCROW_ABI, signer));
     }
     if (addresses.nft !== '0x0000000000000000000000000000000000000000') {
-      setNftContract(new Contract(addresses.nft, NFT_ABI, signer));
+      setNftContract(new ethers.Contract(addresses.nft, NFT_ABI, signer));
     }
     if (addresses.reputation !== '0x0000000000000000000000000000000000000000') {
-      setReputationContract(new Contract(addresses.reputation, REPUTATION_ABI, signer));
+      setReputationContract(new ethers.Contract(addresses.reputation, REPUTATION_ABI, signer));
     }
   }, []);
 
@@ -259,20 +252,21 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setIsConnecting(true);
     try {
-      const browserProvider = new BrowserProvider(window.ethereum);
-      const accounts = await browserProvider.send('eth_requestAccounts', []);
-      const network = await browserProvider.getNetwork();
-      const signer = await browserProvider.getSigner();
-      const balance = await browserProvider.getBalance(accounts[0]);
+      const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+      await web3Provider.send('eth_requestAccounts', []);
+      const signer = web3Provider.getSigner();
+      const address = await signer.getAddress();
+      const network = await web3Provider.getNetwork();
+      const balance = await web3Provider.getBalance(address);
 
-      setProvider(browserProvider);
+      setProvider(web3Provider);
       setSigner(signer);
-      setAccount(accounts[0]);
-      setChainId(Number(network.chainId));
-      setBalance(formatEther(balance));
+      setAccount(address);
+      setChainId(network.chainId);
+      setBalance(ethers.utils.formatEther(balance));
       setIsConnected(true);
 
-      await initContracts(signer, Number(network.chainId));
+      await initContracts(signer, network.chainId);
     } catch (error) {
       console.error('Failed to connect:', error);
     } finally {
@@ -321,7 +315,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!escrowContract) throw new Error('Not connected');
     
     const tx = await escrowContract.createEscrow(seller, contractId, productName, quantity, {
-      value: parseEther(amountInEth)
+      value: ethers.utils.parseEther(amountInEth)
     });
     const receipt = await tx.wait();
     
@@ -335,14 +329,14 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     
     if (event) {
       const parsed = escrowContract.interface.parseLog(event);
-      return Number(parsed?.args[0]);
+      return parsed?.args[0].toNumber();
     }
     return 0;
   };
 
   const addMilestone = async (escrowId: number, description: string, amountInEth: string, deadline: number) => {
     if (!escrowContract) throw new Error('Not connected');
-    const tx = await escrowContract.addMilestone(escrowId, description, parseEther(amountInEth), deadline);
+    const tx = await escrowContract.addMilestone(escrowId, description, ethers.utils.parseEther(amountInEth), deadline);
     await tx.wait();
   };
 
@@ -381,17 +375,17 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     const data = await escrowContract.getEscrow(escrowId);
     
     return {
-      id: Number(data.id),
+      id: data.id.toNumber(),
       buyer: data.buyer,
       seller: data.seller,
-      totalAmount: formatEther(data.totalAmount),
-      releasedAmount: formatEther(data.releasedAmount),
-      createdAt: new Date(Number(data.createdAt) * 1000),
-      contractId: Number(data.contractId),
-      status: Number(data.status),
-      statusName: ESCROW_STATUS[Number(data.status)],
+      totalAmount: ethers.utils.formatEther(data.totalAmount),
+      releasedAmount: ethers.utils.formatEther(data.releasedAmount),
+      createdAt: new Date(data.createdAt.toNumber() * 1000),
+      contractId: data.contractId.toNumber(),
+      status: data.status,
+      statusName: ESCROW_STATUS[data.status],
       productName: data.productName,
-      quantity: Number(data.quantity),
+      quantity: data.quantity.toNumber(),
     };
   };
 
@@ -401,10 +395,10 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     
     return data.map((m: any) => ({
       description: m.description,
-      amount: formatEther(m.amount),
-      deadline: new Date(Number(m.deadline) * 1000),
-      status: Number(m.status),
-      statusName: MILESTONE_STATUS[Number(m.status)],
+      amount: ethers.utils.formatEther(m.amount),
+      deadline: new Date(m.deadline.toNumber() * 1000),
+      status: m.status,
+      statusName: MILESTONE_STATUS[m.status],
       fundsReleased: m.fundsReleased,
     }));
   };
@@ -414,7 +408,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     const ids = asBuyer 
       ? await escrowContract.getBuyerEscrows(account)
       : await escrowContract.getSellerEscrows(account);
-    return ids.map((id: bigint) => Number(id));
+    return ids.map((id: ethers.BigNumber) => id.toNumber());
   };
 
   // ==================== NFT FUNCTIONS ====================
@@ -445,7 +439,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     
     if (event) {
       const parsed = nftContract.interface.parseLog(event);
-      return Number(parsed?.args[0]);
+      return parsed?.args[0].toNumber();
     }
     return 0;
   };
@@ -459,7 +453,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
   const verifyCertificate = async (tokenId: number) => {
     if (!nftContract) throw new Error('Not connected');
     const [isValid, status, daysRemaining] = await nftContract.verifyCertificate(tokenId);
-    return { isValid, status, daysRemaining: Number(daysRemaining) };
+    return { isValid, status, daysRemaining: daysRemaining.toNumber() };
   };
 
   const getCertificate = async (tokenId: number): Promise<Certificate> => {
@@ -468,15 +462,15 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     
     return {
       tokenId,
-      productId: Number(data.productId),
+      productId: data.productId.toNumber(),
       productName: data.productName,
       supplier: data.supplier,
       currentOwner: data.currentOwner,
-      quantity: Number(data.quantity),
-      issuedAt: new Date(Number(data.issuedAt) * 1000),
-      expiresAt: new Date(Number(data.expiresAt) * 1000),
-      status: Number(data.status),
-      statusName: CERT_STATUS[Number(data.status)],
+      quantity: data.quantity.toNumber(),
+      issuedAt: new Date(data.issuedAt.toNumber() * 1000),
+      expiresAt: new Date(data.expiresAt.toNumber() * 1000),
+      status: data.status,
+      statusName: CERT_STATUS[data.status],
       batchNumber: data.batchNumber,
       origin: data.origin,
     };
@@ -487,7 +481,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     const data = await nftContract.getSupplyChainHistory(tokenId);
     
     return data.map((e: any) => ({
-      timestamp: new Date(Number(e.timestamp) * 1000),
+      timestamp: new Date(e.timestamp.toNumber() * 1000),
       actor: e.actor,
       action: e.action,
       location: e.location,
@@ -507,12 +501,12 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     const level = await reputationContract.getReputationLevel(userAddress);
 
     return {
-      balance: formatEther(balance),
-      score: Number(score),
+      balance: ethers.utils.formatEther(balance),
+      score: score.toNumber(),
       level,
-      positiveScore: formatEther(positive),
-      negativeScore: formatEther(negative),
-      totalTransactions: Number(transactions),
+      positiveScore: ethers.utils.formatEther(positive),
+      negativeScore: ethers.utils.formatEther(negative),
+      totalTransactions: transactions.toNumber(),
     };
   };
 
@@ -526,7 +520,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!escrowContract) throw new Error('Not connected');
     const buyerOrders = await escrowContract.getBuyerEscrows(address);
     const sellerOrders = await escrowContract.getSellerEscrows(address);
-    return [...buyerOrders.map((id: bigint) => Number(id)), ...sellerOrders.map((id: bigint) => Number(id))];
+    return [...buyerOrders.map((id: ethers.BigNumber) => id.toNumber()), ...sellerOrders.map((id: ethers.BigNumber) => id.toNumber())];
   };
 
   const getOrder = async (orderId: string): Promise<Escrow> => {
