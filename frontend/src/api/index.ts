@@ -90,6 +90,8 @@ export const suppliersApi = {
   deleteProduct: (id: number) => api.delete(`/suppliers/me/products/${id}`),
   getQuotes: () => api.get('/suppliers/me/quotes'),
   createQuote: (data: any) => api.post('/suppliers/me/quotes', data),
+  getProfile: () => api.get('/suppliers/me/profile'),
+  updateProfile: (data: any) => api.patch('/suppliers/me/profile', data),
 };
 
 // Shops API
