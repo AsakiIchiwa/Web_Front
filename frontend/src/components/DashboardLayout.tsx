@@ -3,7 +3,7 @@ import { useAuthStore } from '../store/authStore';
 import { 
   Building2, LayoutDashboard, Package, FileText, Users, 
   LogOut, Menu, X, ChevronDown, ShoppingCart, MessageSquare,
-  Settings, Bell, Sparkles
+  Settings, Bell, Sparkles, Wallet
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -18,6 +18,7 @@ const navItems = {
     { path: '/supplier/rfq', label: 'Yêu cầu báo giá', icon: MessageSquare },
     { path: '/supplier/contracts', label: 'Hợp đồng', icon: FileText },
     { path: '/supplier/ai-assistant', label: 'AI Assistant', icon: Sparkles },
+    { path: '/web3', label: 'Blockchain', icon: Wallet },
     { path: '/supplier/profile', label: 'Hồ sơ', icon: Settings },
   ],
   shop: [
@@ -26,6 +27,7 @@ const navItems = {
     { path: '/shop/rfq', label: 'RFQ của tôi', icon: MessageSquare },
     { path: '/shop/contracts', label: 'Hợp đồng', icon: FileText },
     { path: '/shop/ai-assistant', label: 'AI Assistant', icon: Sparkles },
+    { path: '/web3', label: 'Blockchain', icon: Wallet },
     { path: '/shop/profile', label: 'Hồ sơ', icon: Settings },
   ],
   admin: [
@@ -34,6 +36,7 @@ const navItems = {
     { path: '/admin/users', label: 'Người dùng', icon: Users },
     { path: '/admin/rfqs', label: 'RFQ & Báo giá', icon: MessageSquare },
     { path: '/admin/contracts', label: 'Hợp đồng', icon: FileText },
+    { path: '/web3', label: 'Blockchain', icon: Wallet },
   ],
 };
 
