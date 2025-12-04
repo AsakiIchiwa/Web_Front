@@ -1,15 +1,15 @@
-import * as React from "react"
+import * as React from "react";
 
 const Alert = React.forwardRef
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & {
-    variant?: 'default' | 'destructive'
+    variant?: 'default' | 'destructive';
   }
 >(({ className, variant = 'default', ...props }, ref) => {
   const variants = {
     default: "bg-white text-gray-950 border-gray-200",
     destructive: "border-red-500/50 text-red-500 [&>svg]:text-red-500",
-  }
+  };
 
   return (
     <div
@@ -18,9 +18,8 @@ const Alert = React.forwardRef
       className={`relative w-full rounded-lg border p-4 ${variants[variant]} ${className || ''}`}
       {...props}
     />
-  )
-})
-Alert.displayName = "Alert"
+  );
+});
 
 const AlertDescription = React.forwardRef
   HTMLParagraphElement,
@@ -31,7 +30,6 @@ const AlertDescription = React.forwardRef
     className={`text-sm [&_p]:leading-relaxed ${className || ''}`}
     {...props}
   />
-))
-AlertDescription.displayName = "AlertDescription"
+));
 
-export { Alert, AlertDescription }
+export { Alert, AlertDescription };
