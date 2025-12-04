@@ -85,7 +85,7 @@ export default function App() {
       <Route path="/waiting" element={<WaitingPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       
-      Web3 Routes
+      {/* Web3 Routes */}
       <Route path="/web3" element={<Web3Dashboard />} />
       
       {/* Supplier Routes */}
