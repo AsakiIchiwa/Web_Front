@@ -1,5 +1,19 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { ethers } from 'ethers';
+import { 
+  BrowserProvider, 
+  Contract, 
+  formatEther, 
+  parseEther,
+  Signer
+} from 'ethers';
+import * as ethers from 'ethers';
+
+// Extend Window interface for ethereum
+declare global {
+  interface Window {
+    ethereum?: any;
+  }
+}
 
 // Contract ABIs matching the deployed contracts
 const ESCROW_ABI = [
@@ -65,9 +79,9 @@ const CONTRACT_ADDRESSES = {
   },
   // Polygon Mainnet (placeholder)
   137: {
-    escrow: '0x0000000000000000000000000000000000000000',
-    nft: '0x0000000000000000000000000000000000000000',
-    reputation: '0x0000000000000000000000000000000000000000',
+    escrow: '0x89a4866a0aDe723485f127515926566CC2AA4f59',
+    nft: '0x43948a12E5eb0c61Cd75D1499637341ac6dF7Fd2',
+    reputation: '0x7b05Dc77eAD8c974905e9D602F4C843CB2bce432',
   },
   // Local Hardhat
   31337: {
@@ -161,9 +175,9 @@ interface Web3ContextType {
   networkName: string;
   
   // Contracts
-  escrowContract: ethers.Contract | null;
-  nftContract: ethers.Contract | null;
-  reputationContract: ethers.Contract | null;
+  escrowContract: Contract | null;
+  reputationContract: Contract | null;
+  nftContract: Contract | null;
   
   // Actions
   connect: () => Promise<void>;
@@ -191,6 +205,11 @@ interface Web3ContextType {
   
   // Reputation functions
   getReputation: (address?: string) => Promise<UserReputation>;
+  
+  // Legacy methods for backward compatibility
+  getUserReputation: (address: string) => Promise<UserReputation>;
+  getUserOrders: (address: string) => Promise<number[]>;
+  getOrder: (orderId: string) => Promise<Escrow>;
 }
 
 const ESCROW_STATUS = ['Created', 'Funded', 'InProgress', 'Completed', 'Disputed', 'Refunded', 'Cancelled'];
@@ -205,30 +224,29 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
   const [account, setAccount] = useState<string | null>(null);
   const [chainId, setChainId] = useState<number | null>(null);
   const [balance, setBalance] = useState('0');
-  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
-  const [signer, setSigner] = useState<ethers.Signer | null>(null);
-  const [escrowContract, setEscrowContract] = useState<ethers.Contract | null>(null);
-  const [nftContract, setNftContract] = useState<ethers.Contract | null>(null);
-  const [reputationContract, setReputationContract] = useState<ethers.Contract | null>(null);
-
+  const [provider, setProvider] = useState<BrowserProvider | null>(null);
+  const [signer, setSigner] = useState<Signer | null>(null);
+  const [escrowContract, setEscrowContract] = useState<Contract | null>(null);
+  const [reputationContract, setReputationContract] = useState<Contract | null>(null);
+  const [nftContract, setNftContract] = useState<Contract | null>(null);
   const networkName = chainId ? (NETWORKS[chainId as keyof typeof NETWORKS]?.chainName || `Chain ${chainId}`) : 'Not Connected';
 
   // Initialize contracts
-  const initContracts = useCallback(async (signer: ethers.Signer, chainId: number) => {
+  const initContracts = useCallback(async (signer: Signer, chainId: number) => {
     const addresses = CONTRACT_ADDRESSES[chainId as keyof typeof CONTRACT_ADDRESSES];
     if (!addresses) {
       console.warn(`No contract addresses for chain ${chainId}`);
       return;
     }
 
-    if (addresses.escrow !== '0x89a4866a0aDe723485f127515926566CC2AA4f59') {
-      setEscrowContract(new ethers.Contract(addresses.escrow, ESCROW_ABI, signer));
+    if (addresses.escrow !== '0x0000000000000000000000000000000000000000') {
+      setEscrowContract(new Contract(addresses.escrow, ESCROW_ABI, signer));
     }
-    if (addresses.nft !== '0x43948a12E5eb0c61Cd75D1499637341ac6dF7Fd2') {
-      setNftContract(new ethers.Contract(addresses.nft, NFT_ABI, signer));
+    if (addresses.nft !== '0x0000000000000000000000000000000000000000') {
+      setNftContract(new Contract(addresses.nft, NFT_ABI, signer));
     }
-    if (addresses.reputation !== '0x7b05Dc77eAD8c974905e9D602F4C843CB2bce432') {
-      setReputationContract(new ethers.Contract(addresses.reputation, REPUTATION_ABI, signer));
+    if (addresses.reputation !== '0x0000000000000000000000000000000000000000') {
+      setReputationContract(new Contract(addresses.reputation, REPUTATION_ABI, signer));
     }
   }, []);
 
@@ -241,7 +259,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setIsConnecting(true);
     try {
-      const browserProvider = new ethers.BrowserProvider(window.ethereum);
+      const browserProvider = new BrowserProvider(window.ethereum);
       const accounts = await browserProvider.send('eth_requestAccounts', []);
       const network = await browserProvider.getNetwork();
       const signer = await browserProvider.getSigner();
@@ -251,7 +269,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
       setSigner(signer);
       setAccount(accounts[0]);
       setChainId(Number(network.chainId));
-      setBalance(ethers.formatEther(balance));
+      setBalance(formatEther(balance));
       setIsConnected(true);
 
       await initContracts(signer, Number(network.chainId));
@@ -303,7 +321,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!escrowContract) throw new Error('Not connected');
     
     const tx = await escrowContract.createEscrow(seller, contractId, productName, quantity, {
-      value: ethers.parseEther(amountInEth)
+      value: parseEther(amountInEth)
     });
     const receipt = await tx.wait();
     
@@ -324,7 +342,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addMilestone = async (escrowId: number, description: string, amountInEth: string, deadline: number) => {
     if (!escrowContract) throw new Error('Not connected');
-    const tx = await escrowContract.addMilestone(escrowId, description, ethers.parseEther(amountInEth), deadline);
+    const tx = await escrowContract.addMilestone(escrowId, description, parseEther(amountInEth), deadline);
     await tx.wait();
   };
 
@@ -366,8 +384,8 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
       id: Number(data.id),
       buyer: data.buyer,
       seller: data.seller,
-      totalAmount: ethers.formatEther(data.totalAmount),
-      releasedAmount: ethers.formatEther(data.releasedAmount),
+      totalAmount: formatEther(data.totalAmount),
+      releasedAmount: formatEther(data.releasedAmount),
       createdAt: new Date(Number(data.createdAt) * 1000),
       contractId: Number(data.contractId),
       status: Number(data.status),
@@ -383,7 +401,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     
     return data.map((m: any) => ({
       description: m.description,
-      amount: ethers.formatEther(m.amount),
+      amount: formatEther(m.amount),
       deadline: new Date(Number(m.deadline) * 1000),
       status: Number(m.status),
       statusName: MILESTONE_STATUS[Number(m.status)],
@@ -489,13 +507,30 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     const level = await reputationContract.getReputationLevel(userAddress);
 
     return {
-      balance: ethers.formatEther(balance),
+      balance: formatEther(balance),
       score: Number(score),
       level,
-      positiveScore: ethers.formatEther(positive),
-      negativeScore: ethers.formatEther(negative),
+      positiveScore: formatEther(positive),
+      negativeScore: formatEther(negative),
       totalTransactions: Number(transactions),
     };
+  };
+
+  // ==================== LEGACY COMPATIBILITY METHODS ====================
+  
+  const getUserReputation = async (address: string): Promise<UserReputation> => {
+    return getReputation(address);
+  };
+
+  const getUserOrders = async (address: string): Promise<number[]> => {
+    if (!escrowContract) throw new Error('Not connected');
+    const buyerOrders = await escrowContract.getBuyerEscrows(address);
+    const sellerOrders = await escrowContract.getSellerEscrows(address);
+    return [...buyerOrders.map((id: bigint) => Number(id)), ...sellerOrders.map((id: bigint) => Number(id))];
+  };
+
+  const getOrder = async (orderId: string): Promise<Escrow> => {
+    return getEscrow(Number(orderId));
   };
 
   // Listen for account/chain changes
@@ -567,6 +602,9 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         getCertificate,
         getSupplyChainHistory,
         getReputation,
+        getUserReputation,
+        getUserOrders,
+        getOrder,
       }}
     >
       {children}
