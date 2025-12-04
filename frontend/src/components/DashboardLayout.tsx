@@ -17,17 +17,21 @@ const navItems = {
     { path: '/supplier/products', label: 'Sản phẩm', icon: Package },
     { path: '/supplier/rfq', label: 'Yêu cầu báo giá', icon: MessageSquare },
     { path: '/supplier/contracts', label: 'Hợp đồng', icon: FileText },
+    { path: '/supplier/profile', label: 'Hồ sơ', icon: Settings },
   ],
   shop: [
     { path: '/shop/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/products', label: 'Tìm sản phẩm', icon: Package },
     { path: '/shop/rfq', label: 'RFQ của tôi', icon: MessageSquare },
     { path: '/shop/contracts', label: 'Hợp đồng', icon: FileText },
+    { path: '/shop/profile', label: 'Hồ sơ', icon: Settings },
   ],
   admin: [
     { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/admin/products', label: 'Duyệt sản phẩm', icon: Package },
     { path: '/admin/users', label: 'Người dùng', icon: Users },
+    { path: '/admin/rfqs', label: 'RFQ & Báo giá', icon: MessageSquare },
+    { path: '/admin/contracts', label: 'Hợp đồng', icon: FileText },
   ],
 };
 
