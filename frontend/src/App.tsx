@@ -24,12 +24,14 @@ import SupplierProducts from './pages/supplier/Products';
 import SupplierRFQs from './pages/supplier/RFQs';
 import SupplierContracts from './pages/supplier/Contracts';
 import SupplierProfile from './pages/supplier/Profile';
+import SupplierAIAssistant from './pages/supplier/AIAssistant';
 
 // Shop Pages
 import ShopDashboard from './pages/shop/Dashboard';
 import ShopRFQs from './pages/shop/RFQs';
 import ShopContracts from './pages/shop/Contracts';
 import ShopProfile from './pages/shop/Profile';
+import ShopAIAssistant from './pages/shop/AIAssistant';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -38,8 +40,8 @@ import AdminUsers from './pages/admin/Users';
 import AdminRFQs from './pages/admin/RFQs';
 import AdminContracts from './pages/admin/Contracts';
 
-// // Web3 Pages
-// import Web3Dashboard from './pages/web3/Web3Dashboard';
+// Web3 Pages
+import Web3Dashboard from './pages/web3/Web3Dashboard';
 
 // Protected Route Component
 function ProtectedRoute({ children, roles }: { children: React.ReactNode; roles?: string[] }) {
@@ -83,8 +85,8 @@ export default function App() {
       <Route path="/waiting" element={<WaitingPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       
-      {/* Web3 Routes
-      <Route path="/web3" element={<Web3Dashboard />} /> */}
+      {/* Web3 Routes */}
+      <Route path="/web3" element={<Web3Dashboard />} />
       
       {/* Supplier Routes */}
       <Route path="/supplier" element={
@@ -98,6 +100,7 @@ export default function App() {
         <Route path="rfq" element={<SupplierRFQs />} />
         <Route path="contracts" element={<SupplierContracts />} />
         <Route path="profile" element={<SupplierProfile />} />
+        <Route path="ai-assistant" element={<SupplierAIAssistant />} />
       </Route>
       
       {/* Shop Routes */}
@@ -111,6 +114,7 @@ export default function App() {
         <Route path="rfq" element={<ShopRFQs />} />
         <Route path="contracts" element={<ShopContracts />} />
         <Route path="profile" element={<ShopProfile />} />
+        <Route path="ai-assistant" element={<ShopAIAssistant />} />
       </Route>
       
       {/* Admin Routes */}

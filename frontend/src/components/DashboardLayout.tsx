@@ -3,7 +3,7 @@ import { useAuthStore } from '../store/authStore';
 import { 
   Building2, LayoutDashboard, Package, FileText, Users, 
   LogOut, Menu, X, ChevronDown, ShoppingCart, MessageSquare,
-  Settings, Bell
+  Settings, Bell, Sparkles
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -17,6 +17,7 @@ const navItems = {
     { path: '/supplier/products', label: 'Sản phẩm', icon: Package },
     { path: '/supplier/rfq', label: 'Yêu cầu báo giá', icon: MessageSquare },
     { path: '/supplier/contracts', label: 'Hợp đồng', icon: FileText },
+    { path: '/supplier/ai-assistant', label: 'AI Assistant', icon: Sparkles },
     { path: '/supplier/profile', label: 'Hồ sơ', icon: Settings },
   ],
   shop: [
@@ -24,6 +25,7 @@ const navItems = {
     { path: '/products', label: 'Tìm sản phẩm', icon: Package },
     { path: '/shop/rfq', label: 'RFQ của tôi', icon: MessageSquare },
     { path: '/shop/contracts', label: 'Hợp đồng', icon: FileText },
+    { path: '/shop/ai-assistant', label: 'AI Assistant', icon: Sparkles },
     { path: '/shop/profile', label: 'Hồ sơ', icon: Settings },
   ],
   admin: [
