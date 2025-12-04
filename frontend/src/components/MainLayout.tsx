@@ -149,7 +149,7 @@ export default function MainLayout() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-            © 2024 B2B Marketplace. All rights reserved.
+            © 2025 B2B Marketplace. All rights reserved.
           </div>
         </div>
       </footer>

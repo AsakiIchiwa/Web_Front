@@ -16,22 +16,30 @@ import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import SuppliersPage from './pages/SuppliersPage';
 import SupplierDetailPage from './pages/SupplierDetailPage';
+import AIPriceSuggestion from './pages/AIPriceSuggestion';
 
 // Supplier Pages
 import SupplierDashboard from './pages/supplier/Dashboard';
 import SupplierProducts from './pages/supplier/Products';
 import SupplierRFQs from './pages/supplier/RFQs';
 import SupplierContracts from './pages/supplier/Contracts';
+import SupplierProfile from './pages/supplier/Profile';
 
 // Shop Pages
 import ShopDashboard from './pages/shop/Dashboard';
 import ShopRFQs from './pages/shop/RFQs';
 import ShopContracts from './pages/shop/Contracts';
+import ShopProfile from './pages/shop/Profile';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminProducts from './pages/admin/Products';
 import AdminUsers from './pages/admin/Users';
+import AdminRFQs from './pages/admin/RFQs';
+import AdminContracts from './pages/admin/Contracts';
+
+// Web3 Pages
+import Web3Dashboard from './pages/web3/Web3Dashboard';
 
 // Protected Route Component
 function ProtectedRoute({ children, roles }: { children: React.ReactNode; roles?: string[] }) {
@@ -66,6 +74,7 @@ export default function App() {
         <Route path="/products/:id" element={<ProductDetailPage />} />
         <Route path="/suppliers" element={<SuppliersPage />} />
         <Route path="/suppliers/:id" element={<SupplierDetailPage />} />
+        <Route path="/ai-price" element={<AIPriceSuggestion />} />
       </Route>
       
       {/* Auth Routes */}
@@ -73,6 +82,9 @@ export default function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/waiting" element={<WaitingPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
+      
+      {/* Web3 Routes */}
+      <Route path="/web3" element={<Web3Dashboard />} />
       
       {/* Supplier Routes */}
       <Route path="/supplier" element={
@@ -85,6 +97,7 @@ export default function App() {
         <Route path="products" element={<SupplierProducts />} />
         <Route path="rfq" element={<SupplierRFQs />} />
         <Route path="contracts" element={<SupplierContracts />} />
+        <Route path="profile" element={<SupplierProfile />} />
       </Route>
       
       {/* Shop Routes */}
@@ -97,6 +110,7 @@ export default function App() {
         <Route path="dashboard" element={<ShopDashboard />} />
         <Route path="rfq" element={<ShopRFQs />} />
         <Route path="contracts" element={<ShopContracts />} />
+        <Route path="profile" element={<ShopProfile />} />
       </Route>
       
       {/* Admin Routes */}
@@ -109,6 +123,8 @@ export default function App() {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="products" element={<AdminProducts />} />
         <Route path="users" element={<AdminUsers />} />
+        <Route path="rfqs" element={<AdminRFQs />} />
+        <Route path="contracts" element={<AdminContracts />} />
       </Route>
       
       {/* 404 */}
