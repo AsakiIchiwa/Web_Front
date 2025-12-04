@@ -7,10 +7,11 @@ export type ContractStatus = 'draft' | 'active' | 'expired' | 'terminated';
 export interface User {
   id: number;
   email: string;
-  email_verified?: boolean;  // ← Thêm
-  is_approved?: boolean; 
   full_name: string;
   role: UserRole;
+  phone?: string;
+  email_verified?: boolean;
+  is_approved?: boolean;
   created_at: string;
   supplier?: Supplier;
   shop?: Shop;
@@ -23,6 +24,9 @@ export interface Supplier {
   address?: string;
   phone?: string;
   description?: string;
+  website?: string;
+  tax_code?: string;
+  business_license?: string;
   created_at: string;
   user?: User;
 }
@@ -33,6 +37,10 @@ export interface Shop {
   shop_name: string;
   address?: string;
   phone?: string;
+  description?: string;
+  website?: string;
+  tax_code?: string;
+  business_type?: string;
   created_at: string;
   user?: User;
 }
@@ -44,6 +52,7 @@ export interface Product {
   description?: string;
   price: number;
   stock: number;
+  unit?: string;
   status: ProductStatus;
   image_url?: string;
   category?: string;
@@ -97,6 +106,7 @@ export interface Contract {
   quantity: number;
   start_date?: string;
   end_date?: string;
+  terms?: string;
   status: ContractStatus;
   created_at: string;
   supplier?: Supplier;

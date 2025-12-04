@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api } from '../../api';
+import { api } from '../api';
 import toast from 'react-hot-toast';
 import { 
   Sparkles, TrendingUp, TrendingDown, Minus, Search, 
