@@ -1,43 +1,41 @@
 import { useState, useEffect } from 'react';
-import { suppliersApi } from '../../api';
+import { shopsApi } from '../../api';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
 import { 
-  User, Building2, Mail, Phone, MapPin, Globe, FileText, 
-  Save, Camera, Shield, Award, Star
+  User, Store, Mail, Phone, MapPin, Globe, FileText, 
+  Save, Camera, Shield, CreditCard
 } from 'lucide-react';
 
-interface SupplierProfile {
+interface ShopProfile {
   id: number;
-  company_name: string;
+  shop_name: string;
   description: string;
   address: string;
   phone: string;
   website: string;
   tax_code: string;
-  business_license: string;
-  logo_url: string;
-  rating: number;
-  total_products: number;
-  total_contracts: number;
+  business_type: string;
+  total_orders: number;
+  total_spent: number;
 }
 
-export default function SupplierProfile() {
+export default function ShopProfile() {
   const { user, fetchUser } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [profile, setProfile] = useState<SupplierProfile | null>(null);
+  const [profile, setProfile] = useState<ShopProfile | null>(null);
   
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
     phone: '',
-    company_name: '',
+    shop_name: '',
     description: '',
     address: '',
     website: '',
     tax_code: '',
-    business_license: '',
+    business_type: 'retail',
   });
 
   useEffect(() => {
@@ -46,18 +44,18 @@ export default function SupplierProfile() {
 
   const fetchProfile = async () => {
     try {
-      const res = await suppliersApi.getMe();
+      const res = await shopsApi.getMe();
       setProfile(res.data);
       setFormData({
         full_name: user?.full_name || '',
         email: user?.email || '',
         phone: res.data.phone || user?.phone || '',
-        company_name: res.data.company_name || '',
+        shop_name: res.data.shop_name || '',
         description: res.data.description || '',
         address: res.data.address || '',
         website: res.data.website || '',
         tax_code: res.data.tax_code || '',
-        business_license: res.data.business_license || '',
+        business_type: res.data.business_type || 'retail',
       });
     } catch (error) {
       console.error(error);
@@ -67,7 +65,7 @@ export default function SupplierProfile() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -75,14 +73,14 @@ export default function SupplierProfile() {
     e.preventDefault();
     setSaving(true);
     try {
-      await suppliersApi.updateMe({
-        company_name: formData.company_name,
+      await shopsApi.updateMe({
+        shop_name: formData.shop_name,
         description: formData.description,
         address: formData.address,
         phone: formData.phone,
         website: formData.website,
         tax_code: formData.tax_code,
-        business_license: formData.business_license,
+        business_type: formData.business_type,
       });
       toast.success('Cập nhật thông tin thành công!');
       fetchUser(); // Refresh user data
@@ -108,8 +106,8 @@ export default function SupplierProfile() {
         <div className="flex flex-col sm:flex-row items-center gap-6">
           {/* Avatar */}
           <div className="relative">
-            <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg">
-              {formData.company_name?.charAt(0) || user?.full_name?.charAt(0) || 'S'}
+            <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-700 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+              {formData.shop_name?.charAt(0) || user?.full_name?.charAt(0) || 'S'}
             </div>
             <button className="absolute -bottom-2 -right-2 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50">
               <Camera className="w-4 h-4 text-gray-600" />
@@ -118,31 +116,36 @@ export default function SupplierProfile() {
           
           {/* Info */}
           <div className="flex-1 text-center sm:text-left">
-            <h1 className="text-2xl font-bold text-gray-900">{formData.company_name || 'Chưa có tên công ty'}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{formData.shop_name || 'Chưa có tên cửa hàng'}</h1>
             <p className="text-gray-500">{user?.email}</p>
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-3">
               <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
                 <Shield className="w-4 h-4" />
                 Đã xác thực
               </span>
-              {profile?.rating && profile.rating > 0 && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm">
-                  <Star className="w-4 h-4 fill-current" />
-                  {profile.rating.toFixed(1)}
-                </span>
-              )}
+              <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                <Store className="w-4 h-4" />
+                {formData.business_type === 'retail' ? 'Bán lẻ' : 
+                 formData.business_type === 'wholesale' ? 'Bán sỉ' : 'Khác'}
+              </span>
             </div>
           </div>
           
           {/* Stats */}
           <div className="flex gap-6 text-center">
             <div>
-              <p className="text-2xl font-bold text-primary-600">{profile?.total_products || 0}</p>
-              <p className="text-sm text-gray-500">Sản phẩm</p>
+              <p className="text-2xl font-bold text-primary-600">{profile?.total_orders || 0}</p>
+              <p className="text-sm text-gray-500">Đơn hàng</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-green-600">{profile?.total_contracts || 0}</p>
-              <p className="text-sm text-gray-500">Hợp đồng</p>
+              <p className="text-2xl font-bold text-green-600">
+                {new Intl.NumberFormat('vi-VN', { 
+                  style: 'currency', 
+                  currency: 'VND',
+                  notation: 'compact'
+                }).format(profile?.total_spent || 0)}
+              </p>
+              <p className="text-sm text-gray-500">Đã mua</p>
             </div>
           </div>
         </div>
@@ -198,33 +201,46 @@ export default function SupplierProfile() {
           </div>
         </div>
 
-        {/* Company Info */}
+        {/* Shop Info */}
         <div className="card p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-primary-600" />
-            Thông tin công ty
+            <Store className="w-5 h-5 text-primary-600" />
+            Thông tin cửa hàng
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tên công ty *</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tên cửa hàng *</label>
               <input
                 type="text"
-                name="company_name"
-                value={formData.company_name}
+                name="shop_name"
+                value={formData.shop_name}
                 onChange={handleChange}
                 className="input"
-                placeholder="Công ty TNHH ABC"
+                placeholder="Cửa hàng XYZ"
                 required
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Loại hình kinh doanh</label>
+              <select
+                name="business_type"
+                value={formData.business_type}
+                onChange={handleChange}
+                className="input"
+              >
+                <option value="retail">Bán lẻ</option>
+                <option value="wholesale">Bán sỉ</option>
+                <option value="both">Cả hai</option>
+              </select>
+            </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả công ty</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả cửa hàng</label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
                 className="input min-h-[100px]"
-                placeholder="Giới thiệu về công ty của bạn..."
+                placeholder="Giới thiệu về cửa hàng của bạn..."
               />
             </div>
             <div className="md:col-span-2">
@@ -268,17 +284,6 @@ export default function SupplierProfile() {
                   placeholder="0123456789"
                 />
               </div>
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Số giấy phép kinh doanh</label>
-              <input
-                type="text"
-                name="business_license"
-                value={formData.business_license}
-                onChange={handleChange}
-                className="input"
-                placeholder="41A8-012345"
-              />
             </div>
           </div>
         </div>
