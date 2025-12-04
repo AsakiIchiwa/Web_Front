@@ -38,8 +38,8 @@ import AdminUsers from './pages/admin/Users';
 import AdminRFQs from './pages/admin/RFQs';
 import AdminContracts from './pages/admin/Contracts';
 
-// Web3 Pages
-import Web3Dashboard from './pages/web3/Web3Dashboard';
+// // Web3 Pages
+// import Web3Dashboard from './pages/web3/Web3Dashboard';
 
 // Protected Route Component
 function ProtectedRoute({ children, roles }: { children: React.ReactNode; roles?: string[] }) {
