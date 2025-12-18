@@ -146,3 +146,30 @@ export const adminApi = {
   getSuppliers: () => api.get('/admin/suppliers'),
   getShops: () => api.get('/admin/shops'),
 };
+
+// Notifications API
+export const notificationsApi = {
+  list: (unreadOnly?: boolean) => api.get('/notifications', { params: { unread_only: unreadOnly } }),
+  getUnreadCount: () => api.get('/notifications/unread-count'),
+  markAsRead: (id: number) => api.patch(`/notifications/${id}`, { is_read: true }),
+  markAllRead: () => api.post('/notifications/mark-all-read'),
+  delete: (id: number) => api.delete(`/notifications/${id}`),
+};
+
+// Upload API
+export const uploadApi = {
+  uploadImage: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/upload/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  uploadProductImage: (productId: number, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post(`/upload/product-image/${productId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+};

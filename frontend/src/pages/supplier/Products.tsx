@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
-import { suppliersApi } from '../../api';
+import { useState, useEffect, useRef } from 'react';
+import { suppliersApi, uploadApi } from '../../api';
 import { Product } from '../../types';
-import { Plus, Edit2, Trash2, Package } from 'lucide-react';
+import { Plus, Edit2, Trash2, Package, Upload, Image, X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export default function SupplierProducts() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -10,9 +12,12 @@ export default function SupplierProducts() {
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
-    name: '', description: '', price: '', stock: '', category: ''
+    name: '', description: '', price: '', stock: '', category: '', image_url: ''
   });
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => { fetchProducts(); }, []);
   
@@ -29,7 +34,8 @@ export default function SupplierProducts() {
   
   const openAddModal = () => {
     setEditingProduct(null);
-    setFormData({ name: '', description: '', price: '', stock: '', category: '' });
+    setFormData({ name: '', description: '', price: '', stock: '', category: '', image_url: '' });
+    setImagePreview(null);
     setShowModal(true);
   };
   
@@ -40,9 +46,52 @@ export default function SupplierProducts() {
       description: product.description || '',
       price: String(product.price),
       stock: String(product.stock),
-      category: product.category || ''
+      category: product.category || '',
+      image_url: product.image_url || ''
     });
+    setImagePreview(product.image_url ? (product.image_url.startsWith('http') ? product.image_url : `${API_URL}${product.image_url}`) : null);
     setShowModal(true);
+  };
+  
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn file ảnh');
+      return;
+    }
+    
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Ảnh không được vượt quá 5MB');
+      return;
+    }
+    
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+    
+    // Upload image
+    setUploading(true);
+    try {
+      const response = await uploadApi.uploadImage(file);
+      setFormData({ ...formData, image_url: response.data.url });
+      toast.success('Tải ảnh lên thành công!');
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Lỗi tải ảnh');
+      setImagePreview(null);
+    } finally {
+      setUploading(false);
+    }
+  };
+  
+  const removeImage = () => {
+    setImagePreview(null);
+    setFormData({ ...formData, image_url: '' });
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,7 +103,8 @@ export default function SupplierProducts() {
         description: formData.description,
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock),
-        category: formData.category
+        category: formData.category,
+        image_url: formData.image_url
       };
       
       if (editingProduct) {
@@ -87,6 +137,12 @@ export default function SupplierProducts() {
   
   const formatPrice = (price: number) => 
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+
+  const getImageUrl = (url: string | null) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `${API_URL}${url}`;
+  };
   
   if (loading) {
     return <div className="flex items-center justify-center py-20">
@@ -123,9 +179,17 @@ export default function SupplierProducts() {
                 <tr key={product.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <Package className="w-5 h-5 text-gray-400" />
-                      </div>
+                      {product.image_url ? (
+                        <img 
+                          src={getImageUrl(product.image_url) || ''} 
+                          alt={product.name}
+                          className="w-10 h-10 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <Package className="w-5 h-5 text-gray-400" />
+                        </div>
+                      )}
                       <div>
                         <p className="font-medium text-gray-900">{product.name}</p>
                         <p className="text-sm text-gray-500 line-clamp-1">{product.description}</p>
@@ -164,11 +228,69 @@ export default function SupplierProducts() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-gray-900 mb-6">
               {editingProduct ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Ảnh sản phẩm</label>
+                <div className="flex items-start gap-4">
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        className="w-32 h-32 object-cover rounded-lg border"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary-500 hover:bg-primary-50 transition"
+                    >
+                      {uploading ? (
+                        <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
+                      ) : (
+                        <>
+                          <Image className="w-8 h-8 text-gray-400 mb-1" />
+                          <span className="text-xs text-gray-500">Tải ảnh lên</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="btn btn-secondary btn-sm"
+                    >
+                      <Upload className="w-4 h-4" />
+                      {uploading ? 'Đang tải...' : 'Chọn ảnh'}
+                    </button>
+                    <p className="text-xs text-gray-500 mt-2">
+                      PNG, JPG, GIF, WEBP. Tối đa 5MB.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm *</label>
                 <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="input" required />
@@ -193,7 +315,7 @@ export default function SupplierProducts() {
               </div>
               <div className="flex gap-3 pt-4">
                 <button type="button" onClick={() => setShowModal(false)} className="btn btn-secondary flex-1">Hủy</button>
-                <button type="submit" disabled={submitting} className="btn btn-primary flex-1">
+                <button type="submit" disabled={submitting || uploading} className="btn btn-primary flex-1">
                   {submitting ? 'Đang lưu...' : editingProduct ? 'Cập nhật' : 'Thêm'}
                 </button>
               </div>
