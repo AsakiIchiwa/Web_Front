@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { shopsApi } from '../../api';
+import { shopsApi, contractsApi } from '../../api';
 import { Contract } from '../../types';
-import { FileText, Eye, X, Building2, Store, Package, Calendar, DollarSign, Phone, Mail, MapPin } from 'lucide-react';
+import { FileText, Eye, X, Building2, Store, Package, Calendar, DollarSign, Phone, Mail, MapPin, Download, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function ShopContracts() {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
+  const [downloadingPdf, setDownloadingPdf] = useState<number | null>(null);
   
   useEffect(() => { fetchContracts(); }, []);
   
@@ -18,6 +20,27 @@ export default function ShopContracts() {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadPdf = async (contractId: number) => {
+    setDownloadingPdf(contractId);
+    try {
+      const response = await contractsApi.downloadPdf(contractId);
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `hop-dong-${contractId.toString().padStart(4, '0')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('Đã tải hợp đồng PDF!');
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Lỗi tải PDF');
+    } finally {
+      setDownloadingPdf(null);
     }
   };
   
@@ -70,13 +93,27 @@ export default function ShopContracts() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <button 
-                      onClick={() => setSelectedContract(contract)}
-                      className="btn btn-sm btn-secondary flex items-center gap-1"
-                    >
-                      <Eye className="w-4 h-4" />
-                      Chi tiết
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => setSelectedContract(contract)}
+                        className="btn btn-sm btn-secondary flex items-center gap-1"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Chi tiết
+                      </button>
+                      <button 
+                        onClick={() => handleDownloadPdf(contract.id)}
+                        disabled={downloadingPdf === contract.id}
+                        className="btn btn-sm btn-primary flex items-center gap-1"
+                      >
+                        {downloadingPdf === contract.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Download className="w-4 h-4" />
+                        )}
+                        PDF
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -211,6 +248,22 @@ export default function ShopContracts() {
                     {selectedContract.quantity} x {formatPrice(selectedContract.agreed_price)}
                   </p>
                 </div>
+              </div>
+
+              {/* Download PDF Button */}
+              <div className="flex justify-center">
+                <button 
+                  onClick={() => handleDownloadPdf(selectedContract.id)}
+                  disabled={downloadingPdf === selectedContract.id}
+                  className="btn btn-primary flex items-center gap-2 px-8"
+                >
+                  {downloadingPdf === selectedContract.id ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Download className="w-5 h-5" />
+                  )}
+                  Tải hợp đồng PDF
+                </button>
               </div>
 
               {/* Terms */}

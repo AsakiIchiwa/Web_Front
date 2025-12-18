@@ -24,15 +24,8 @@ export default function ShopRFQs() {
   
   const handleAcceptQuote = async (quote: Quote) => {
     try {
-      await quotesApi.update(quote.id, { status: 'accepted' });
-      
-      // Create contract
-      await shopsApi.createContract({
-        supplier_id: quote.supplier_id,
-        product_id: selectedRFQ?.product_id,
-        agreed_price: quote.price,
-        quantity: selectedRFQ?.quantity || 1
-      });
+      // Use new accept endpoint - this will update quote status, RFQ status, and create contract
+      await quotesApi.accept(quote.id);
       
       toast.success('Đã chấp nhận báo giá và tạo hợp đồng!');
       setSelectedRFQ(null);
@@ -44,7 +37,7 @@ export default function ShopRFQs() {
   
   const handleRejectQuote = async (quote: Quote) => {
     try {
-      await quotesApi.update(quote.id, { status: 'rejected' });
+      await quotesApi.reject(quote.id);
       toast.success('Đã từ chối báo giá');
       fetchRFQs();
     } catch (error: any) {

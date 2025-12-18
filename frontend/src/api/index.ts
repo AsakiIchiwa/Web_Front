@@ -1,4 +1,4 @@
- import axios from 'axios';
+import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -90,8 +90,6 @@ export const suppliersApi = {
   deleteProduct: (id: number) => api.delete(`/suppliers/me/products/${id}`),
   getQuotes: () => api.get('/suppliers/me/quotes'),
   createQuote: (data: any) => api.post('/suppliers/me/quotes', data),
-  getProfile: () => api.get('/suppliers/me/profile'),
-  updateProfile: (data: any) => api.patch('/suppliers/me/profile', data),
 };
 
 // Shops API
@@ -119,6 +117,8 @@ export const quotesApi = {
   list: () => api.get('/quotes'),
   get: (id: number) => api.get(`/quotes/${id}`),
   update: (id: number, data: any) => api.patch(`/quotes/${id}`, data),
+  accept: (id: number) => api.post(`/quotes/${id}/accept`),
+  reject: (id: number) => api.post(`/quotes/${id}/reject`),
 };
 
 // Negotiations API
@@ -133,6 +133,7 @@ export const contractsApi = {
   get: (id: number) => api.get(`/contracts/${id}`),
   update: (id: number, data: any) => api.patch(`/contracts/${id}`, data),
   delete: (id: number) => api.delete(`/contracts/${id}`),
+  downloadPdf: (id: number) => api.get(`/contracts/${id}/pdf`, { responseType: 'blob' }),
 };
 
 // Admin API
