@@ -16,6 +16,7 @@ const navItems = {
     { path: '/supplier/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/supplier/products', label: 'Sản phẩm', icon: Package },
     { path: '/supplier/rfq', label: 'Yêu cầu báo giá', icon: MessageSquare },
+    { path: '/supplier/orders', label: 'Đơn hàng', icon: ShoppingCart },
     { path: '/supplier/contracts', label: 'Hợp đồng', icon: FileText },
     { path: '/supplier/ai-assistant', label: 'AI Assistant', icon: Sparkles },
     { path: '/web3', label: 'Blockchain', icon: Wallet },
@@ -25,6 +26,7 @@ const navItems = {
     { path: '/shop/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/products', label: 'Tìm sản phẩm', icon: Package },
     { path: '/shop/rfq', label: 'RFQ của tôi', icon: MessageSquare },
+    { path: '/shop/orders', label: 'Đơn hàng', icon: ShoppingCart },
     { path: '/shop/contracts', label: 'Hợp đồng', icon: FileText },
     { path: '/shop/ai-assistant', label: 'AI Assistant', icon: Sparkles },
     { path: '/web3', label: 'Blockchain', icon: Wallet },
@@ -46,6 +48,7 @@ export default function DashboardLayout({ role }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   
   const items = navItems[role];
   
@@ -97,17 +100,34 @@ export default function DashboardLayout({ role }: DashboardLayoutProps) {
         
         {/* User */}
         <div className="p-4 border-t border-gray-800">
-          <div className="flex items-center gap-3 mb-4">
+          <div 
+            className="flex items-center gap-3 mb-4 cursor-pointer hover:bg-gray-800 p-2 rounded-lg"
+            onClick={() => setUserMenuOpen(!userMenuOpen)}
+          >
             <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center font-bold">
               {user?.full_name?.charAt(0) || 'U'}
             </div>
             {sidebarOpen && (
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{user?.full_name}</p>
-                <p className="text-xs text-gray-400 truncate">{roleLabels[role]}</p>
-              </div>
+              <>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{user?.full_name}</p>
+                  <p className="text-xs text-gray-400 truncate">{roleLabels[role]}</p>
+                </div>
+                <ChevronDown className={`w-4 h-4 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+              </>
             )}
           </div>
+          {userMenuOpen && sidebarOpen && (
+            <div className="mb-2 space-y-1">
+              <Link 
+                to={`/${role}/profile`}
+                className="flex items-center gap-3 w-full px-4 py-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
+              >
+                <Settings className="w-4 h-4" />
+                <span className="text-sm">Cài đặt</span>
+              </Link>
+            </div>
+          )}
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 w-full px-4 py-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
