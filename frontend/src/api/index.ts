@@ -90,6 +90,7 @@ export const suppliersApi = {
   deleteProduct: (id: number) => api.delete(`/suppliers/me/products/${id}`),
   getQuotes: () => api.get('/suppliers/me/quotes'),
   createQuote: (data: any) => api.post('/suppliers/me/quotes', data),
+  searchShops: (params?: any) => api.get('/suppliers/me/shops', { params }),
 };
 
 // Shops API
@@ -186,29 +187,27 @@ export const chatApi = {
 // Orders API
 // ==================== ORDERS API ====================
 export const ordersApi = {
-  // Orders CRUD
-  list: () => api.get('/orders/'),
+   // Orders CRUD
+  list: (status?: string) => api.get('/orders', { params: { status } }),
   get: (id: number) => api.get(`/orders/${id}`),
-  create: (data: any) => api.post('/orders/', data),
-  updateStatus: (id: number, status: string) => 
-    api.patch(`/orders/${id}/status`, null, { params: { status } }),
-  
-  // Payment proof upload
-  uploadPaymentProof: (id: number, file: File) => {
+  create: (data: any) => api.post('/orders', data),
+  updateStatus: (id: number, status: string, note?: string) => 
+    api.patch(`/orders/${id}/status`, null, { params: { new_status: status, note } }),
+  uploadPaymentProof: (orderId: number, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.post(`/orders/${id}/payment-proof`, formData, {
+    return api.post(`/orders/${orderId}/payment-proof`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
-  
+
   // Payment Info - Supplier's payment settings
-  getMyPaymentInfo: () => api.get('/orders/payment-info/me'),
-  updateMyPaymentInfo: (data: any) => api.patch('/orders/payment-info/me', data),
-  createMyPaymentInfo: (data: any) => api.post('/orders/payment-info/me', data),
-  getSupplierPaymentInfo: (supplierId: number) => api.get(`/orders/payment-info/${supplierId}`),
-  
-  // QR Code upload
+    getMyPaymentInfo: () => api.get('/orders/payment-info/me'),
+    updateMyPaymentInfo: (data: any) => api.patch('/orders/payment-info/me', data),
+    createMyPaymentInfo: (data: any) => api.post('/orders/payment-info/me', data),
+    getSupplierPaymentInfo: (supplierId: number) => api.get(`/orders/payment-info/${supplierId}`),
+
+// QR Code upload
   uploadQRCode: (file: File) => {
     const formData = new FormData();
     formData.append('file', file);

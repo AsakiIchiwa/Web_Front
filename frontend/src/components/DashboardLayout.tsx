@@ -3,10 +3,10 @@ import { useAuthStore } from '../store/authStore';
 import { 
   Building2, LayoutDashboard, Package, FileText, Users, 
   LogOut, Menu, X, ChevronDown, ShoppingCart, MessageSquare,
-  Settings, Sparkles, Wallet
+  Settings, Sparkles, Wallet, MessageCircle, Store
 } from 'lucide-react';
 import { useState } from 'react';
-import NotificationDropdown from './NotificationDropdown';
+import NotificationBell from './NotificationBell';
 
 interface DashboardLayoutProps {
   role: 'supplier' | 'shop' | 'admin';
@@ -17,8 +17,10 @@ const navItems = {
     { path: '/supplier/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/supplier/products', label: 'Sản phẩm', icon: Package },
     { path: '/supplier/rfq', label: 'Yêu cầu báo giá', icon: MessageSquare },
-    { path: '/supplier/orders', label: 'Đơn hàng', icon: ShoppingCart },
     { path: '/supplier/contracts', label: 'Hợp đồng', icon: FileText },
+    { path: '/supplier/orders', label: 'Đơn hàng', icon: ShoppingCart },
+    { path: '/supplier/shops', label: 'Tìm Shop', icon: Store },
+    { path: '/supplier/chat', label: 'Tin nhắn', icon: MessageCircle },
     { path: '/supplier/ai-assistant', label: 'AI Assistant', icon: Sparkles },
     { path: '/web3', label: 'Blockchain', icon: Wallet },
     { path: '/supplier/profile', label: 'Hồ sơ', icon: Settings },
@@ -27,8 +29,9 @@ const navItems = {
     { path: '/shop/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/products', label: 'Tìm sản phẩm', icon: Package },
     { path: '/shop/rfq', label: 'RFQ của tôi', icon: MessageSquare },
-    { path: '/shop/orders', label: 'Đơn hàng', icon: ShoppingCart },
     { path: '/shop/contracts', label: 'Hợp đồng', icon: FileText },
+    { path: '/shop/orders', label: 'Đơn hàng', icon: ShoppingCart },
+    { path: '/shop/chat', label: 'Tin nhắn', icon: MessageCircle },
     { path: '/shop/ai-assistant', label: 'AI Assistant', icon: Sparkles },
     { path: '/web3', label: 'Blockchain', icon: Wallet },
     { path: '/shop/profile', label: 'Hồ sơ', icon: Settings },
@@ -99,7 +102,7 @@ export default function DashboardLayout({ role }: DashboardLayoutProps) {
           })}
         </nav>
         
-        {/* User */}
+                {/* User */}
         <div className="p-4 border-t border-gray-800">
           <div 
             className="flex items-center gap-3 mb-4 cursor-pointer hover:bg-gray-800 p-2 rounded-lg"
@@ -167,8 +170,8 @@ export default function DashboardLayout({ role }: DashboardLayoutProps) {
           
           <div className="flex items-center gap-3">
             {/* Notification Dropdown - Thay thế button cũ */}
-            <NotificationDropdown />
-            
+                        <NotificationDropdown />
+                        
             <Link to="/" className="btn btn-sm btn-secondary">
               Về trang chủ
             </Link>

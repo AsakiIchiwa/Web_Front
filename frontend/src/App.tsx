@@ -26,6 +26,8 @@ import SupplierOrders from './pages/supplier/Orders';
 import SupplierContracts from './pages/supplier/Contracts';
 import SupplierProfile from './pages/supplier/Profile';
 import SupplierAIAssistant from './pages/supplier/AIAssistant';
+import SupplierOrders from './pages/supplier/Orders';
+import SupplierShopList from './pages/supplier/ShopList';
 
 // Shop Pages
 import ShopDashboard from './pages/shop/Dashboard';
@@ -34,6 +36,10 @@ import ShopOrders from './pages/shop/Orders';
 import ShopContracts from './pages/shop/Contracts';
 import ShopProfile from './pages/shop/Profile';
 import ShopAIAssistant from './pages/shop/AIAssistant';
+import ShopOrders from './pages/shop/Orders';
+
+// Chat Page
+import ChatPage from './pages/ChatPage';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -102,8 +108,12 @@ export default function App() {
         <Route path="rfq" element={<SupplierRFQs />} />
         <Route path="orders" element={<SupplierOrders />} />
         <Route path="contracts" element={<SupplierContracts />} />
+        <Route path="orders" element={<SupplierOrders />} />
+        <Route path="shops" element={<SupplierShopList />} />
         <Route path="profile" element={<SupplierProfile />} />
         <Route path="ai-assistant" element={<SupplierAIAssistant />} />
+        <Route path="chat" element={<ChatPage />} />
+        <Route path="chat/:roomId" element={<ChatPage />} />
       </Route>
       
       {/* Shop Routes */}
@@ -117,8 +127,11 @@ export default function App() {
         <Route path="rfq" element={<ShopRFQs />} />
         <Route path="orders" element={<ShopOrders />} />
         <Route path="contracts" element={<ShopContracts />} />
+        <Route path="orders" element={<ShopOrders />} />
         <Route path="profile" element={<ShopProfile />} />
         <Route path="ai-assistant" element={<ShopAIAssistant />} />
+        <Route path="chat" element={<ChatPage />} />
+        <Route path="chat/:roomId" element={<ChatPage />} />
       </Route>
       
       {/* Admin Routes */}
