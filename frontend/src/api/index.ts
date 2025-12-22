@@ -173,3 +173,38 @@ export const uploadApi = {
     });
   },
 };
+
+// Chat API
+export const chatApi = {
+  getRooms: () => api.get('/chat/rooms'),
+  getRoom: (roomId: number) => api.get(`/chat/rooms/${roomId}`),
+  createOrGetRoom: (partnerId: number) => api.post(`/chat/rooms/with/${partnerId}`),
+  sendMessage: (roomId: number, message: string) => api.post(`/chat/rooms/${roomId}/messages`, { message }),
+  getUnreadCount: () => api.get('/chat/unread-count'),
+};
+
+// Orders API
+export const ordersApi = {
+  list: (status?: string) => api.get('/orders', { params: { status } }),
+  get: (id: number) => api.get(`/orders/${id}`),
+  create: (data: any) => api.post('/orders', data),
+  updateStatus: (id: number, status: string, note?: string) => 
+    api.patch(`/orders/${id}/status`, null, { params: { new_status: status, note } }),
+  uploadPaymentProof: (orderId: number, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post(`/orders/${orderId}/payment-proof`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  getMyPaymentInfo: () => api.get('/orders/payment-info/me'),
+  updateMyPaymentInfo: (data: any) => api.put('/orders/payment-info/me', data),
+  uploadQRCode: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/orders/payment-info/qr-code', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  getSupplierPaymentInfo: (supplierId: number) => api.get(`/orders/payment-info/${supplierId}`),
+};

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { chatApi } from '../../api';
-import { useAuthStore } from '../../store/authStore';
+import { chatApi } from '../api';
+import { useAuthStore } from '../store/authStore';
 import { Send, MessageCircle, User, Building2, Store, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
