@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Store, MapPin, Phone, MessageCircle, Search, Loader2 } from 'lucide-react';
-import { suppliersApi, chatApi } from '../api';
+import { suppliersApi, chatApi } from '../../api';
 import toast from 'react-hot-toast';
 
 interface Shop {

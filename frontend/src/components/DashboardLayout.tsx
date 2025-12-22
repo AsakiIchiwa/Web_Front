@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import NotificationBell from './NotificationBell';
+import NotificationDropdown from './NotificationDropdown';
 
 interface DashboardLayoutProps {
   role: 'supplier' | 'shop' | 'admin';
