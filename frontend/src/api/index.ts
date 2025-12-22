@@ -185,26 +185,25 @@ export const chatApi = {
 
 // Orders API
 export const ordersApi = {
-  list: (status?: string) => api.get('/orders', { params: { status } }),
+  list: () => api.get('/orders'),
   get: (id: number) => api.get(`/orders/${id}`),
   create: (data: any) => api.post('/orders', data),
-  updateStatus: (id: number, status: string, note?: string) => 
-    api.patch(`/orders/${id}/status`, null, { params: { new_status: status, note } }),
-  uploadPaymentProof: (orderId: number, file: File) => {
+  updateStatus: (id: number, status: string) => api.patch(`/orders/${id}/status`, { status }),
+  uploadPaymentProof: (id: number, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.post(`/orders/${orderId}/payment-proof`, formData, {
+    return api.post(`/orders/${id}/payment-proof`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
-  getMyPaymentInfo: () => api.get('/orders/payment-info/me'),
-  updateMyPaymentInfo: (data: any) => api.put('/orders/payment-info/me', data),
+  getSupplierPaymentInfo: (supplierId: number) => api.get(`/orders/supplier/${supplierId}/payment-info`),
+  getMyPaymentInfo: () => api.get('/orders/my-payment-info'),
+  updateMyPaymentInfo: (data: any) => api.patch('/orders/my-payment-info', data),
   uploadQRCode: (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.post('/orders/payment-info/qr-code', formData, {
+    return api.post('/orders/upload-qr', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
-  getSupplierPaymentInfo: (supplierId: number) => api.get(`/orders/payment-info/${supplierId}`),
 };
