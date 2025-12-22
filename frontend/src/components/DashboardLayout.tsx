@@ -3,9 +3,10 @@ import { useAuthStore } from '../store/authStore';
 import { 
   Building2, LayoutDashboard, Package, FileText, Users, 
   LogOut, Menu, X, ChevronDown, ShoppingCart, MessageSquare,
-  Settings, Bell, Sparkles, Wallet
+  Settings, Sparkles, Wallet
 } from 'lucide-react';
 import { useState } from 'react';
+import NotificationDropdown from './NotificationDropdown';
 
 interface DashboardLayoutProps {
   role: 'supplier' | 'shop' | 'admin';
@@ -165,10 +166,9 @@ export default function DashboardLayout({ role }: DashboardLayoutProps) {
           </div>
           
           <div className="flex items-center gap-3">
-            <button className="p-2 hover:bg-gray-100 rounded-lg relative">
-              <Bell className="w-5 h-5 text-gray-600" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            {/* Notification Dropdown - Thay thế button cũ */}
+            <NotificationDropdown />
+            
             <Link to="/" className="btn btn-sm btn-secondary">
               Về trang chủ
             </Link>
