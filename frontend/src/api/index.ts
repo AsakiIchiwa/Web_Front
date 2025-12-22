@@ -178,10 +178,12 @@ export const uploadApi = {
 // Chat API
 export const chatApi = {
   getRooms: () => api.get('/chat/rooms'),
-  getRoom: (roomId: number) => api.get(`/chat/rooms/${roomId}`),
-  createOrGetRoom: (partnerId: number) => api.post(`/chat/rooms/with/${partnerId}`),
-  sendMessage: (roomId: number, message: string) => api.post(`/chat/rooms/${roomId}/messages`, { message }),
-  getUnreadCount: () => api.get('/chat/unread-count'),
+  getRoom: (id: number) => api.get(`/chat/rooms/${id}`),
+  sendMessage: (roomId: number, message: string) => 
+    api.post(`/chat/rooms/${roomId}/messages`, { message }),
+  // Gọi với user_id của partner
+  createOrGetRoom: (partnerUserId: number) => 
+    api.post(`/chat/rooms/with/${partnerUserId}`),
 };
 
 // Orders API
