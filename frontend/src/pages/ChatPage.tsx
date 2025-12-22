@@ -12,23 +12,24 @@ interface Message {
   is_read: boolean;
 }
 
-interface Conversation {
+interface Room {
   id: number;
-  other_user: {
+  partner: {
     id: number;
     email: string;
     company_name?: string;
   };
   last_message?: Message;
+  messages?: Message[];
 }
 
 export default function ChatPage() {
   const { conversationId } = useParams();
   const { user } = useAuthStore();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [selectedConversation, setSelectedConversation] = useState<number | null>(
+  const [selectedRoom, setSelectedRoom] = useState<number | null>(
     conversationId ? parseInt(conversationId) : null
   );
   const [loading, setLoading] = useState(true);
@@ -42,7 +43,7 @@ export default function ChatPage() {
   };
 
   useEffect(() => {
-    loadConversations();
+    loadRooms();
     
     return () => {
       if (pollIntervalRef.current) {
@@ -55,12 +56,11 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
-    if (selectedConversation) {
-      loadMessages(selectedConversation);
+    if (selectedRoom) {
+      loadMessages(selectedRoom);
       
-      // Start polling for new messages
       pollIntervalRef.current = setInterval(() => {
-        loadMessages(selectedConversation);
+        loadMessages(selectedRoom);
       }, 5000);
       
       return () => {
@@ -69,27 +69,27 @@ export default function ChatPage() {
         }
       };
     }
-  }, [selectedConversation]);
+  }, [selectedRoom]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const loadConversations = async () => {
+  const loadRooms = async () => {
     try {
-      const response = await chatApi.getConversations();
-      setConversations(response.data);
+      const response = await chatApi.getRooms();
+      setRooms(response.data);
     } catch (error) {
-      console.error('Failed to load conversations:', error);
+      console.error('Failed to load rooms:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadMessages = async (convId: number) => {
+  const loadMessages = async (roomId: number) => {
     try {
-      const response = await chatApi.getMessages(convId);
-      setMessages(response.data);
+      const response = await chatApi.getRoom(roomId);
+      setMessages(response.data.messages || []);
     } catch (error) {
       console.error('Failed to load messages:', error);
     }
@@ -105,14 +105,14 @@ export default function ChatPage() {
     }, 1000);
   };
 
-  const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedConversation) return;
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedRoom) return;
 
     try {
-      await chatApi.sendMessage(selectedConversation, newMessage);
+      await chatApi.sendMessage(selectedRoom, newMessage);
       setNewMessage('');
       setIsTyping(false);
-      loadMessages(selectedConversation);
+      loadMessages(selectedRoom);
     } catch (error) {
       console.error('Failed to send message:', error);
     }
@@ -124,26 +124,26 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-[calc(100vh-200px)] bg-white rounded-lg shadow">
-      {/* Conversations List */}
+      {/* Rooms List */}
       <div className="w-1/3 border-r">
         <div className="p-4 border-b">
           <h2 className="text-lg font-semibold">Messages</h2>
         </div>
         <div className="overflow-y-auto h-full">
-          {conversations.map((conv) => (
+          {rooms.map((room) => (
             <div
-              key={conv.id}
-              onClick={() => setSelectedConversation(conv.id)}
+              key={room.id}
+              onClick={() => setSelectedRoom(room.id)}
               className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${
-                selectedConversation === conv.id ? 'bg-blue-50' : ''
+                selectedRoom === room.id ? 'bg-blue-50' : ''
               }`}
             >
               <div className="flex items-center gap-2">
                 <User className="h-8 w-8 p-1 bg-gray-200 rounded-full" />
                 <div>
-                  <p className="font-medium">{conv.other_user.company_name || conv.other_user.email}</p>
-                  {conv.last_message && (
-                    <p className="text-sm text-gray-500 truncate">{conv.last_message.content}</p>
+                  <p className="font-medium">{room.partner?.company_name || room.partner?.email || 'Unknown'}</p>
+                  {room.last_message && (
+                    <p className="text-sm text-gray-500 truncate">{room.last_message.content}</p>
                   )}
                 </div>
               </div>
@@ -154,13 +154,13 @@ export default function ChatPage() {
 
       {/* Messages */}
       <div className="flex-1 flex flex-col">
-        {selectedConversation ? (
+        {selectedRoom ? (
           <>
             <div className="p-4 border-b flex items-center gap-2">
-              <ArrowLeft className="h-5 w-5 cursor-pointer md:hidden" onClick={() => setSelectedConversation(null)} />
+              <ArrowLeft className="h-5 w-5 cursor-pointer md:hidden" onClick={() => setSelectedRoom(null)} />
               <User className="h-8 w-8 p-1 bg-gray-200 rounded-full" />
               <h3 className="font-semibold">
-                {conversations.find(c => c.id === selectedConversation)?.other_user.company_name || 'Chat'}
+                {rooms.find(r => r.id === selectedRoom)?.partner?.company_name || 'Chat'}
               </h3>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -197,12 +197,12 @@ export default function ChatPage() {
                     setNewMessage(e.target.value);
                     handleTyping();
                   }}
-                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                   placeholder="Type a message..."
                   className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <button
-                  onClick={sendMessage}
+                  onClick={handleSendMessage}
                   className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                 >
                   <Send className="h-5 w-5" />
